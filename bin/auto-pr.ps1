@@ -191,8 +191,26 @@ git diff --name-only HEAD | ForEach-Object {
 }
 
 if ($Push) {
-    Write-Host 'Pushing updates ...' -ForegroundColor DarkCyan
-    git push origin $OriginBranch
+    $retryDelay = 15
+    for ($i = 0; $i -lt 5; $i++) {
+        Write-Host 'Rebasing local branch before push ...' -ForegroundColor DarkCyan
+        git pull --rebase origin $OriginBranch
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Pull failed."
+            Write-Warning "Retrying in $retryDelay seconds..."
+            Start-Sleep -Seconds $retryDelay
+            continue
+        }
+        Write-Host 'Pushing updates ...' -ForegroundColor DarkCyan
+        git push origin $OriginBranch
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Push failed."
+            Write-Warning "Retrying in $retryDelay seconds..."
+            Start-Sleep -Seconds $retryDelay
+            continue
+        }
+        break
+    }
 } else {
     Write-Host "Returning to $OriginBranch branch and removing unstaged files ..." -ForegroundColor DarkCyan
     git checkout -f $OriginBranch
