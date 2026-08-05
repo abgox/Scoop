@@ -29,8 +29,8 @@ function find_hash_in_rdf([String] $url, [String] $basename) {
         $data = $wc.DownloadData($url)
         [xml]$xml = (Get-Encoding($wc)).GetString($data)
     } catch [System.Net.WebException] {
-        Write-Host $_ -ForegroundColor DarkRed
-        Write-Host "URL $url is not valid" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)$_"
+        Write-Host "$($PSStyle.Foreground.Red)URL $url is not valid"
         return $null
     }
 
@@ -65,8 +65,8 @@ function find_hash_in_textfile([String] $url, [Hashtable] $substitutions, [Strin
         }
         $hashfile = (New-Object System.IO.StreamReader($ms, (Get-Encoding $wc))).ReadToEnd()
     } catch [system.net.webexception] {
-        Write-Host $_ -ForegroundColor DarkRed
-        Write-Host "URL $url is not valid" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)$_"
+        Write-Host "$($PSStyle.Foreground.Red)URL $url is not valid"
         return
     }
 
@@ -133,8 +133,8 @@ function find_hash_in_json([String] $url, [Hashtable] $substitutions, [String] $
         }
         $json = (New-Object System.IO.StreamReader($ms, (Get-Encoding $wc))).ReadToEnd()
     } catch [System.Net.WebException] {
-        Write-Host $_ -ForegroundColor DarkRed
-        Write-Host "URL $url is not valid" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)$_"
+        Write-Host "$($PSStyle.Foreground.Red)URL $url is not valid"
         return
     }
     debug $jsonpath
@@ -161,8 +161,8 @@ function find_hash_in_xml([String] $url, [Hashtable] $substitutions, [String] $x
         }
         $xml = [xml]((New-Object System.IO.StreamReader($ms, (Get-Encoding $wc))).ReadToEnd())
     } catch [system.net.webexception] {
-        Write-Host $_ -ForegroundColor DarkRed
-        Write-Host "URL $url is not valid" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)$_"
+        Write-Host "$($PSStyle.Foreground.Red)URL $url is not valid"
         return
     }
 
@@ -205,8 +205,8 @@ function find_hash_in_headers([String] $url) {
         }
         $res.Close()
     } catch [System.Net.WebException] {
-        Write-Host $_ -ForegroundColor DarkRed
-        Write-Host "URL $url is not valid" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)$_" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)URL $url is not valid"
         return
     }
 
@@ -327,8 +327,8 @@ function get_hash_for_app([String] $app, $config, [String] $version, [String] $u
     try {
         Invoke-CachedDownload $app $version $url $null $null $true
     } catch [system.net.webexception] {
-        Write-Host $_ -ForegroundColor DarkRed
-        Write-Host "URL $url is not valid" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)$_" -ForegroundColor DarkRed
+        Write-Host "$($PSStyle.Foreground.Red)URL $url is not valid"
         return $null
     }
     $file = cache_path $app $version $url

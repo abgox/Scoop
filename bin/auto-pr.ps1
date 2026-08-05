@@ -142,24 +142,26 @@ a new version of [$app]($homepage) is available.
     }
 }
 
-Write-Host 'Updating ...' -ForegroundColor DarkCyan
-if ($Push) {
-    git pull origin $OriginBranch
-    git checkout $OriginBranch
-} else {
-    git pull upstream $OriginBranch
-    git push origin $OriginBranch
-}
-
-. "$PSScriptRoot\checkver.ps1" -App $App -Dir $Dir -Update -SkipUpdated:$SkipUpdated -ThrowError:$ThrowError
+. "$env:GITHUB_WORKSPACE\bin\checkver.ps1" -App $App -Dir $Dir -Update -Segment $env:SEGMENT -SkipUpdated:$SkipUpdated -ThrowError:$ThrowError
 if ($SpecialSnowflakes) {
-    Write-Host "Forcing update on our special snowflakes: $($SpecialSnowflakes -join ',')" -ForegroundColor DarkCyan
+    Write-Host "$($PSStyle.Foreground.Cyan)Forcing update on our special snowflakes: $($SpecialSnowflakes -join ',')"
     $SpecialSnowflakes | ForEach-Object {
-        . "$PSScriptRoot\checkver.ps1" $_ -Dir $Dir -ForceUpdate -ThrowError:$ThrowError
+        . "$env:GITHUB_WORKSPACE\bin\checkver.ps1" $_ -Dir $Dir -ForceUpdate -ThrowError:$ThrowError
     }
 }
 
-git diff --name-only HEAD | ForEach-Object {
+Write-Host
+
+$Change = git diff --name-only HEAD
+if ($Change) {
+    Write-Host "$($PSStyle.Foreground.Yellow)Has changes to commit."
+} else {
+    Write-Host "$($PSStyle.Foreground.Green)No changes to commit."
+    return
+}
+
+Write-Host '::group::Committing updates for changed manifests'
+$Change | ForEach-Object {
     $manifest = $_
     if (!$manifest.EndsWith('.json')) {
         return
@@ -189,8 +191,12 @@ git diff --name-only HEAD | ForEach-Object {
         pull_requests $json $app $Upstream $manifest $CommitMessage
     }
 }
+Write-Host '::endgroup::'
+
+Write-Host
 
 if ($Push) {
+    Write-Host '::group::Pushing updates'
     $retryDelay = 15
     for ($i = 0; $i -lt 5; $i++) {
         Write-Host 'Rebasing local branch before push ...' -ForegroundColor DarkCyan
@@ -211,9 +217,12 @@ if ($Push) {
         }
         break
     }
+    Write-Host '::endgroup::'
 } else {
     Write-Host "Returning to $OriginBranch branch and removing unstaged files ..." -ForegroundColor DarkCyan
     git checkout -f $OriginBranch
 }
 
-git reset --hard
+# git reset --hard
+
+Write-Host
