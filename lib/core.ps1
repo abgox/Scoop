@@ -288,8 +288,8 @@ function is_admin {
 
 # messages
 function abort($msg, [int] $exit_code = 1) { Write-Host $msg -f red; exit $exit_code }
-function error($msg) { Write-Host "ERROR $msg" -f darkred }
-function warn($msg) { Write-Host "WARN  $msg" -f darkyellow }
+function error($msg) { Write-Error $msg }
+function warn($msg) { Write-Warning $msg }
 function info($msg) { Write-Host "INFO  $msg" -f darkgray }
 function debug($obj) {
     if ((get_config DEBUG $false) -ine 'true' -and $env:SCOOP_DEBUG -ine 'true') {
