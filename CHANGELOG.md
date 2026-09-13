@@ -2,47 +2,78 @@
 
 ### Features
 
-- **install:** Add output for the setting and removal of environment variables ([#6460](https://github.com/ScoopInstaller/Scoop/issues/6460))
 - **scoop-uninstall:** Allow access to `$bucket` in uninstall scripts ([#6380](https://github.com/ScoopInstaller/Scoop/issues/6380))
-- **install:** Add separator at the end of notes, highlight suggestions ([#6418](https://github.com/ScoopInstaller/Scoop/issues/6418))
+- **checkver:** Set GitHub mode default jsonpath and regex ([#6653](https://github.com/ScoopInstaller/Scoop/issues/6653))
+- **download:** Enhance Get-GitHubToken to include more token sources ([#6712](https://github.com/ScoopInstaller/Scoop/issues/6712))
 - **download|scoop-download:** Add GitHub issue prompt when the default downloader fails ([#6539](https://github.com/ScoopInstaller/Scoop/issues/6539))
 - **download|scoop-config:** Allow disabling automatic fallback to the default downloader when Aria2c download fails ([#6538](https://github.com/ScoopInstaller/Scoop/issues/6538))
+- **install:** Add support for historical manifests by git history ([#6370](https://github.com/ScoopInstaller/Scoop/issues/6370))
+- **install:** Add output for the setting and removal of environment variables ([#6460](https://github.com/ScoopInstaller/Scoop/issues/6460))
+- **install:** Add separator at the end of notes, highlight suggestions ([#6418](https://github.com/ScoopInstaller/Scoop/issues/6418))
 
 ### Bug Fixes
 
-- **core:** Fix the grep parameter in the `Invoke-GitLog` function ([#6407](https://github.com/ScoopInstaller/Scoop/issues/6407))
-- **buckets:** Fix the filtering condition when retrieving the number of manifests ([#6509](https://github.com/ScoopInstaller/Scoop/issues/6509))
 - **scoop-download:** Fix function `nightly_version` not defined error ([#6386](https://github.com/ScoopInstaller/Scoop/issues/6386))
 - **scoop-download:** Fix incorrect download success state ([#6473](https://github.com/ScoopInstaller/Scoop/issues/6473))
+- **scoop-search:** Select latest search result semantically ([#6643](https://github.com/ScoopInstaller/Scoop/issues/6643))
 - **scoop-uninstall:** Correct `-Global` Switch ([#6454](https://github.com/ScoopInstaller/Scoop/issues/6454))
+- **scoop-update:** Import `versions.ps1` in the parallel bucket sync to fix `currentdir` failing with `NO_JUNCTION` enabled ([#6735](https://github.com/ScoopInstaller/Scoop/issues/6735))
+- **scoop-update:** Fix updating apps installed from a local manifest path ([#6736](https://github.com/ScoopInstaller/Scoop/issues/6736))
+- **scoop-update:** `scoop update -f` on an `@version` pin now upgrades to the bucket HEAD ([#6730](https://github.com/ScoopInstaller/Scoop/issues/6730))
 - **scoop-update:** Force sync tags w/ remote branch while scoop update ([#6439](https://github.com/ScoopInstaller/Scoop/issues/6439))
+- **scoop-version:** Fix logic error caused by missing brackets ([#6463](https://github.com/ScoopInstaller/Scoop/issues/6463))
+- **auto-pr** Rebase before pushing to prevent push conflicts ([#6624](https://github.com/ScoopInstaller/Scoop/issues/6624))
 - **autoupdate:** Use origin URL to handle URLs with fragment in GitHub mode ([#6455](https://github.com/ScoopInstaller/Scoop/issues/6455))
 - **autoupdate:** Ensure GitHub API requests use token ([#6535](https://github.com/ScoopInstaller/Scoop/issues/6535))
+- **buckets:** Skip Git invocation if unavailable in `new_issue_msg` ([#6591](https://github.com/ScoopInstaller/Scoop/issues/6591))
+- **buckets:** Fix the filtering condition when retrieving the number of manifests ([#6509](https://github.com/ScoopInstaller/Scoop/issues/6509))
 - **buckets|scoop-info:** Switch git log date format to ISO 8601 to avoid locale issues ([#6446](https://github.com/ScoopInstaller/Scoop/issues/6446))
-- **scoop-version:** Fix logic error caused by missing brackets ([#6463](https://github.com/ScoopInstaller/Scoop/issues/6463))
-- **getopt:** Teach getopt to respect the `--%` token ([#6477](https://github.com/ScoopInstaller/Scoop/issues/6477))
-- **core|manifest:** Avoid error messages when searching non-existent 'deprecated' directory ([#6471](https://github.com/ScoopInstaller/Scoop/issues/6471))
-- **path:** Trim ending slash when initializing paths ([#6501](https://github.com/ScoopInstaller/Scoop/issues/6501))
 - **checkver:** Allow script to run when URL fetch fails but script exists ([#6490](https://github.com/ScoopInstaller/Scoop/issues/6490), [#6556](https://github.com/ScoopInstaller/Scoop/issues/6556))
-- **install:** Don't add to `$Error` when checking for service `cexecsvc` ([#6520](https://github.com/ScoopInstaller/Scoop/issues/6520))
 - **checkver:** Fix incorrect version returned when script fails without output ([#6547](https://github.com/ScoopInstaller/Scoop/issues/6547))
-- **uninstall:** Import `url_filename` from `download.ps1` ([#6530](https://github.com/ScoopInstaller/Scoop/issues/6530))
-- **schema:** Add missing `hash.mode` value `github` ([#6533](https://github.com/ScoopInstaller/Scoop/issues/6533))
+- **checkver:** Remove redundant always-true condition in GitHub checkver logic ([#6571](https://github.com/ScoopInstaller/Scoop/issues/6571))
+- **checkver:** Harden github checkver ([#6641](https://github.com/ScoopInstaller/Scoop/issues/6641))
+- **core:** Fix the grep parameter in the `Invoke-GitLog` function ([#6407](https://github.com/ScoopInstaller/Scoop/issues/6407))
+- **core:** Add null checks before closing BinaryReader/FileStream in update process ([#6507](https://github.com/ScoopInstaller/Scoop/issues/6507), [#6711](https://github.com/ScoopInstaller/Scoop/issues/6711))
 - **core:** Skip NO_JUNCTION logic when $app is 'scoop' in `currentdir` function ([#6541](https://github.com/ScoopInstaller/Scoop/issues/6541))
 - **core:** Fix substitute handling of substring keys ([#6561](https://github.com/ScoopInstaller/Scoop/issues/6561))
 - **core:** Check `$deprecated_dir` exists before accessing it ([#6574](https://github.com/ScoopInstaller/Scoop/issues/6574))
-- **checkver:** Remove redundant always-true condition in GitHub checkver logic ([#6571](https://github.com/ScoopInstaller/Scoop/issues/6571))
-- **auto-pr** Rebase before pushing in `auto-pr.ps1` to prevent push conflicts ([#6624](https://github.com/ScoopInstaller/Scoop/issues/6624))
+- **core:** Give `dark` higher priority when use `Extract-DarkArchive` ([#6637](https://github.com/ScoopInstaller/Scoop/issues/6637))
+- **core|manifest:** Avoid error messages when searching non-existent 'deprecated' directory ([#6471](https://github.com/ScoopInstaller/Scoop/issues/6471))
+- **getopt:** Teach getopt to respect the `--%` token ([#6477](https://github.com/ScoopInstaller/Scoop/issues/6477))
+- **install:** Don't add to `$Error` when checking for service `cexecsvc` ([#6520](https://github.com/ScoopInstaller/Scoop/issues/6520))
+- **path:** Trim ending slash when initializing paths ([#6501](https://github.com/ScoopInstaller/Scoop/issues/6501))
+- **schema:** Add missing `hash.mode` value `github` ([#6534](https://github.com/ScoopInstaller/Scoop/issues/6534))
+- **shim:** Rewrite system paths to avoid WoW64 redirection ([#6620](https://github.com/ScoopInstaller/Scoop/issues/6620))
+- **uninstall:** Import `url_filename` from `download.ps1` ([#6530](https://github.com/ScoopInstaller/Scoop/issues/6530))
 
 ### Code Refactoring
 
+- **scoop-list:** Use simpler method to check the deprecated status of the manifest to improve performance ([#6599](https://github.com/ScoopInstaller/Scoop/issues/6599))
+- **install:** Get reference for Users group via Principal.WellKnownSidType ([#6278](https://github.com/ScoopInstaller/Scoop/issues/6278))
+- **install:** Use `scoop-` prefix for `install.json` and `manifest.json` ([#6732](https://github.com/ScoopInstaller/Scoop/issues/6732))
 - **output:** Replace raw prints with functions for standardized output ([#6449](https://github.com/ScoopInstaller/Scoop/issues/6449))
 - **output:** Combine the separated outputs into a single output ([#6545](https://github.com/ScoopInstaller/Scoop/issues/6545))
-- **scoop-list:** Use simpler method to check the deprecated status of the manifest to improve performance ([#6599](https://github.com/ScoopInstaller/Scoop/issues/6599))
+
+### Performance Improvements
+
+- **scoop-search:** Skip JSON parse when query absent from file ([#6284](https://github.com/ScoopInstaller/Scoop/issues/6284))
 
 ### Builds
 
 - **supporting:** Update System.Data.SQLite to 2.0.2 ([#6555](https://github.com/ScoopInstaller/Scoop/issues/6555), [#6560](https://github.com/ScoopInstaller/Scoop/issues/6560))
+- **supporting:** Update Newtonsoft.Json to 13.0.4 ([#6731](https://github.com/ScoopInstaller/Scoop/issues/6731))
+
+### Continuous Integration
+
+- **workflow:** Drop Appveyor support and refactor GitHub Actions workflow ([#6626](https://github.com/ScoopInstaller/Scoop/issues/6626))
+
+### Documentation
+
+- **README:** Remove Gitter badge ([#6640](https://github.com/ScoopInstaller/Scoop/issues/6640))
+
+### Tests
+
+- **bucket:** Compatible with Pester v6 ([#6724](https://github.com/ScoopInstaller/Scoop/issues/6724))
 
 ## [v0.5.3](https://github.com/ScoopInstaller/Scoop/compare/v0.5.2...v0.5.3) - 2025-08-11
 

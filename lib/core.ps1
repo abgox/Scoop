@@ -16,8 +16,28 @@ function Get-PESubsystem($filePath) {
     } catch {
         return -1
     } finally {
-        $binaryReader.Close()
-        $fileStream.Close()
+        if ($null -ne $binaryReader) { $binaryReader.Close() }
+        if ($null -ne $fileStream) { $fileStream.Close() }
+    }
+}
+
+function Get-PEMachine($filePath) {
+    try {
+        $fileStream = [System.IO.FileStream]::new($filePath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
+        $binaryReader = [System.IO.BinaryReader]::new($fileStream)
+
+        $fileStream.Seek(0x3C, [System.IO.SeekOrigin]::Begin) | Out-Null
+        $peOffset = $binaryReader.ReadInt32()
+
+        # Machine field is at PE signature (4 bytes) + offset 0 of COFF header
+        $fileStream.Seek($peOffset + 4, [System.IO.SeekOrigin]::Begin) | Out-Null
+
+        return $binaryReader.ReadUInt16()
+    } catch {
+        return 0
+    } finally {
+        if ($null -ne $binaryReader) { $binaryReader.Close() }
+        if ($null -ne $fileStream) { $fileStream.Close() }
     }
 }
 
@@ -40,8 +60,9 @@ function Set-PESubsystem($filePath, $targetSubsystem) {
     } catch {
         return $false
     } finally {
-        $binaryReader.Close()
-        $fileStream.Close()
+        if ($null -ne $binaryWriter) { $binaryWriter.Close() }
+        if ($null -ne $binaryReader) { $binaryReader.Close() }
+        if ($null -ne $fileStream) { $fileStream.Close() }
     }
     return $true
 }
@@ -80,7 +101,7 @@ function Show-DeprecatedWarning {
 }
 
 function load_cfg($file) {
-    if(!(Test-Path $file)) {
+    if (!(Test-Path $file)) {
         return $null
     }
 
@@ -96,14 +117,14 @@ function load_cfg($file) {
 
 function get_config($name, $default) {
     $name = $name.ToLowerInvariant()
-    if($null -eq $scoopConfig.$name -and $null -ne $default) {
+    if ($null -eq $scoopConfig.$name -and $null -ne $default) {
         return $default
     }
     return $scoopConfig.$name
 }
 
 function set_config {
-    Param (
+    param (
         [ValidateNotNullOrEmpty()]
         $name,
         $value
@@ -235,11 +256,11 @@ function Invoke-Git {
         $ArgumentList = @('-C', $WorkingDirectory) + $ArgumentList
     }
 
-    if([String]::IsNullOrEmpty($proxy) -or $proxy -eq 'none')  {
+    if ([String]::IsNullOrEmpty($proxy) -or $proxy -eq 'none') {
         return & $git @ArgumentList
     }
 
-    if($ArgumentList -Match '\b(clone|checkout|pull|fetch|ls-remote)\b') {
+    if ($ArgumentList -match '\b(clone|checkout|pull|fetch|ls-remote)\b') {
         $j = Start-Job -ScriptBlock {
             # convert proxy setting for git
             $proxy = $using:proxy
@@ -259,14 +280,14 @@ function Invoke-Git {
 
 function Invoke-GitLog {
     [CmdletBinding()]
-    Param (
+    param (
         [Parameter(Mandatory, ValueFromPipeline)]
         [String]$Path,
         [Parameter(Mandatory, ValueFromPipeline)]
         [String]$CommitHash,
         [String]$Name = ''
     )
-    Process {
+    process {
         if ($Name) {
             if ($Name.Length -gt 12) {
                 $Name = "$($Name.Substring(0, 10)).."
@@ -278,7 +299,7 @@ function Invoke-GitLog {
 }
 
 # helper functions
-function coalesce($a, $b) { if($a) { return $a } $b }
+function coalesce($a, $b) { if ($a) { return $a } $b }
 
 function is_admin {
     $admin = [security.principal.windowsbuiltinrole]::administrator
@@ -287,10 +308,10 @@ function is_admin {
 }
 
 # messages
-function abort($msg, [int] $exit_code=1) { write-host $msg -f red; exit $exit_code }
-function error($msg) { write-host "ERROR $msg" -f darkred }
-function warn($msg) {  write-host "WARN  $msg" -f darkyellow }
-function info($msg) {  write-host "INFO  $msg" -f darkgray }
+function abort($msg, [int] $exit_code = 1) { Write-Host $msg -f red; exit $exit_code }
+function error($msg) { Write-Host "ERROR $msg" -f darkred }
+function warn($msg) { Write-Host "WARN  $msg" -f darkyellow }
+function info($msg) { Write-Host "INFO  $msg" -f darkgray }
 function debug($obj) {
     if ((get_config DEBUG $false) -ine 'true' -and $env:SCOOP_DEBUG -ine 'true') {
         return
@@ -300,14 +321,14 @@ function debug($obj) {
     $param = $MyInvocation.Line.Replace($MyInvocation.InvocationName, '').Trim()
     $msg = $obj | Out-String -Stream
 
-    if($null -eq $obj -or $null -eq $msg) {
+    if ($null -eq $obj -or $null -eq $msg) {
         Write-Host "$prefix $param = " -f DarkCyan -NoNewline
         Write-Host '$null' -f DarkYellow -NoNewline
         Write-Host " -> $($MyInvocation.PSCommandPath):$($MyInvocation.ScriptLineNumber):$($MyInvocation.OffsetInLine)" -f DarkGray
         return
     }
 
-    if($msg.GetType() -eq [System.Object[]]) {
+    if ($msg.GetType() -eq [System.Object[]]) {
         Write-Host "$prefix $param ($($obj.GetType()))" -f DarkCyan -NoNewline
         Write-Host " -> $($MyInvocation.PSCommandPath):$($MyInvocation.ScriptLineNumber):$($MyInvocation.OffsetInLine)" -f DarkGray
         $msg | Where-Object { ![String]::IsNullOrWhiteSpace($_) } |
@@ -320,18 +341,18 @@ function debug($obj) {
         Write-Host " -> $($MyInvocation.PSCommandPath):$($MyInvocation.ScriptLineNumber):$($MyInvocation.OffsetInLine)" -f DarkGray
     }
 }
-function success($msg) { write-host $msg -f darkgreen }
+function success($msg) { Write-Host $msg -f darkgreen }
 
 function filesize($length) {
     $gb = [math]::pow(2, 30)
     $mb = [math]::pow(2, 20)
     $kb = [math]::pow(2, 10)
 
-    if($length -gt $gb) {
+    if ($length -gt $gb) {
         "{0:n1} GB" -f ($length / $gb)
-    } elseif($length -gt $mb) {
+    } elseif ($length -gt $mb) {
         "{0:n1} MB" -f ($length / $mb)
-    } elseif($length -gt $kb) {
+    } elseif ($length -gt $kb) {
         "{0:n1} KB" -f ($length / $kb)
     } else {
         if ($null -eq $length) {
@@ -342,7 +363,7 @@ function filesize($length) {
 }
 
 # dirs
-function basedir($global) { if($global) { return $globaldir } $scoopdir }
+function basedir($global) { if ($global) { return $globaldir } $scoopdir }
 function appsdir($global) { "$(basedir $global)\apps" }
 function shimdir($global) { "$(basedir $global)\shims" }
 function modulesdir($global) { "$(basedir $global)\modules" }
@@ -438,14 +459,14 @@ function Get-AppFilePath {
     return $null
 }
 
-Function Test-CommandAvailable {
+function Test-CommandAvailable {
     param (
         [String]$Name
     )
-    Return [Boolean](Get-Command $Name -ErrorAction Ignore)
+    return [Boolean](Get-Command $Name -ErrorAction Ignore)
 }
 
-Function Test-GitAvailable {
+function Test-GitAvailable {
     return [Boolean](Get-HelperPath -Helper Git)
 }
 
@@ -480,9 +501,9 @@ function Get-HelperPath {
                 }
             }
             'Dark' {
-                $HelperPath = Get-AppFilePath 'wixtoolset' 'wix.exe'
+                $HelperPath = Get-AppFilePath 'dark' 'dark.exe'
                 if ([String]::IsNullOrEmpty($HelperPath)) {
-                    $HelperPath = Get-AppFilePath 'dark' 'dark.exe'
+                    $HelperPath = Get-AppFilePath 'wixtoolset' 'wix.exe'
                 }
             }
             'Aria2' { $HelperPath = Get-AppFilePath 'aria2' 'aria2c.exe' }
@@ -587,14 +608,14 @@ function app_status($app, $global) {
 }
 
 function appname_from_url($url) {
-    (split-path $url -leaf) -replace '.json$', ''
+    (Split-Path $url -Leaf) -replace '.json$', ''
 }
 
 # paths
-function fname($path) { split-path $path -leaf }
+function fname($path) { Split-Path $path -Leaf }
 function strip_ext($fname) { $fname -replace '\.[^\.]*$', '' }
 function strip_filename($path) { $path -replace [regex]::escape((fname $path)) }
-function strip_fragment($url) { $url -replace (new-object uri $url).fragment }
+function strip_fragment($url) { $url -replace (New-Object uri $url).fragment }
 function ensure($dir) {
     if (!(Test-Path -Path $dir)) {
         New-Item -Path $dir -ItemType Directory | Out-Null
@@ -647,8 +668,29 @@ function friendly_path($path) {
         return $path -replace ([Regex]::Escape($h)), '~\'
     }
 }
+
+# Returns the relative path from $from to $to, or $to unchanged when
+# $to is not under $from.
+function Get-RelativePath($from, $to) {
+    if (-not (is_in_dir $from $to)) {
+        return $to
+    }
+
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        try {
+            return [System.IO.Path]::GetRelativePath($from, $to)
+        } catch {}
+    }
+
+    return ($to.Substring($from.Length).TrimStart('\', '/') -replace '/', '\')
+}
 function is_local($path) {
     ($path -notmatch '^https?://') -and (Test-Path $path)
+}
+
+# True if $check equals $dir or sits under $dir.
+function is_in_dir($dir, $check) {
+    $check -match "^$([regex]::Escape("$dir"))([/\\]|$)"
 }
 
 # operations
@@ -724,7 +766,7 @@ function Invoke-ExternalCommand {
         # ref-1: https://learn.microsoft.com/en-us/powershell/scripting/learn/experimental-features?view=powershell-7.4#psnativecommandargumentpassing
         # ref-2: https://nsis.sourceforge.io/Docs/Chapter3.html
         $LegacyCommand = $FilePath -match '^((cmd|cscript|find|sqlcmd|wscript|msiexec)(\.exe)?|.*\.(bat|cmd|js|vbs|wsf))$' -or
-            ($ArgumentList -match '^/S$|^/D=[A-Z]:[\\/].*$').Length -eq 2
+        ($ArgumentList -match '^/S$|^/D=[A-Z]:[\\/].*$').Length -eq 2
         $SupportArgumentList = $Process.StartInfo.PSObject.Properties.Name -contains 'ArgumentList'
         if ((-not $LegacyCommand) -and $SupportArgumentList) {
             # ArgumentList is supported in PowerShell 6.1 and later (built on .NET Core 2.1+)
@@ -799,8 +841,7 @@ function isFileLocked([string]$path) {
             $stream.Close()
         }
         return $false
-    }
-    catch {
+    } catch {
         # file is locked by a process.
         return $true
     }
@@ -825,7 +866,7 @@ function movedir($from, $to) {
     $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
     $proc.WaitForExit()
 
-    if($proc.ExitCode -ge 8) {
+    if ($proc.ExitCode -ge 8) {
         debug $stdoutTask.Result
         throw "Could not find '$(fname $from)'! (error $($proc.ExitCode))"
     }
@@ -867,7 +908,12 @@ function Get-ShimTarget($ShimPath) {
         if (!$shimTarget) {
             $shimTarget = ((Select-String -Path $ShimPath -Pattern '[''"]([^@&]*?)[''"]' -AllMatches).Matches.Groups | Select-Object -Last 1).Value
         }
-        $shimTarget | Convert-Path -ErrorAction SilentlyContinue
+        $shimTargetConverted = $shimTarget | Convert-Path -ErrorAction SilentlyContinue
+        if (!$shimTargetConverted -and $shimTarget -and $shimTarget.Contains('\Sysnative\')) {
+            $shimTarget.Replace('\Sysnative\', '\System32\') | Convert-Path -ErrorAction SilentlyContinue
+        } else {
+            return $shimTargetConverted
+        }
     }
 }
 
@@ -908,13 +954,34 @@ function shim($path, $global, $name, $arg) {
         # for programs with no awareness of any shell
         warn_on_overwrite "$shim.shim" $path
         Copy-Item (get_shim_path) "$shim.exe" -Force
-        Write-Output "path = `"$resolved_path`"" | Out-UTF8File "$shim.shim"
+
+        $rewrote_path = $resolved_path
+
+        # If the shim exe is x86 on a x64 OS, rewrite paths so the shim resolves correctly:
+        #   System32 -> Sysnative  (x64 resolve x64 program in System32, and it should be Sysnative in x86 program)
+        #   SysWOW64 -> System32   (x64 resolve x86 program in SysWOW64, and it should be System32 in x86 program)
+        $shim_machine = Get-PEMachine "$shim.exe"
+        # 0x014c is IMAGE_FILE_MACHINE_I386
+        # https://learn.microsoft.com/en-us/windows/win32/sysinfo/image-file-machine-constants
+        if ($shim_machine -eq 0x014c -and [System.Environment]::Is64BitOperatingSystem) {
+            $sysdir = [System.IO.Path]::Combine($env:SystemRoot, 'System32')
+            $sysnative = [System.IO.Path]::Combine($env:SystemRoot, 'Sysnative')
+            $syswow = [System.IO.Path]::Combine($env:SystemRoot, 'SysWOW64')
+            if ($rewrote_path -like "$sysdir\*") {
+                $rewrote_path = $rewrote_path -replace [regex]::Escape($sysdir), $sysnative
+            } elseif ($rewrote_path -like "$syswow\*") {
+                $rewrote_path = $rewrote_path -replace [regex]::Escape($syswow), $sysdir
+            }
+        }
+
+        Write-Output "path = `"$rewrote_path`"" | Out-UTF8File "$shim.shim"
         if ($arg) {
             Write-Output "args = $arg" | Out-UTF8File "$shim.shim" -Append
         }
 
         $target_subsystem = Get-PESubsystem $resolved_path
-        if ($target_subsystem -eq 2) { # we only want to make shims GUI
+        if ($target_subsystem -eq 2) {
+            # we only want to make shims GUI
             Write-Output "Making $shim.exe a GUI binary."
             Set-PESubsystem "$shim.exe" $target_subsystem | Out-Null
         }
@@ -1127,30 +1194,30 @@ function Confirm-InstallationStatus {
 }
 
 function wraptext($text, $width) {
-    if(!$width) { $width = $host.ui.rawui.buffersize.width };
+    if (!$width) { $width = $host.ui.rawui.buffersize.width }
     $width -= 1 # be conservative: doesn't seem to print the last char
 
     $text -split '\r?\n' | ForEach-Object {
         $line = ''
         $_ -split ' ' | ForEach-Object {
-            if($line.length -eq 0) { $line = $_ }
-            elseif($line.length + $_.length + 1 -le $width) { $line += " $_" }
-            else { $lines += ,$line; $line = $_ }
+            if ($line.length -eq 0) { $line = $_ }
+            elseif ($line.length + $_.length + 1 -le $width) { $line += " $_" }
+            else { $lines += , $line; $line = $_ }
         }
-        $lines += ,$line
+        $lines += , $line
     }
 
     $lines -join "`n"
 }
 
 function pluralize($count, $singular, $plural) {
-    if($count -eq 1) { $singular } else { $plural }
+    if ($count -eq 1) { $singular } else { $plural }
 }
 
 # convert list of apps to list of ($app, $global) tuples
 function applist($apps, $global) {
-    if(!$apps) { return @() }
-    return ,@($apps | ForEach-Object { ,@($_, $global) })
+    if (!$apps) { return @() }
+    return , @($apps | ForEach-Object { , @($_, $global) })
 }
 
 function parse_app([string]$app) {
@@ -1162,10 +1229,10 @@ function parse_app([string]$app) {
 }
 
 function show_app($app, $bucket, $version) {
-    if($bucket) {
+    if ($bucket) {
         $app = "$bucket/$app"
     }
-    if($version) {
+    if ($version) {
         $app = "$app@$version"
     }
     return $app
@@ -1271,7 +1338,7 @@ $configHome = $env:XDG_CONFIG_HOME, "$env:USERPROFILE\.config" | Select-Object -
 $configFile = "$configHome\scoop\config.json"
 # Check if it's the expected install path for scoop: <root>/apps/scoop/current
 $coreRoot = Split-Path $PSScriptRoot
-$pathExpected = ($coreRoot -replace '\\','/') -like '*apps/scoop/current*'
+$pathExpected = ($coreRoot -replace '\\', '/') -like '*apps/scoop/current*'
 if ($pathExpected) {
     # Portable config is located in root directory:
     #    .\current\scoop\apps\<root>\config.json  <- a reversed path

@@ -43,7 +43,7 @@ function install_app($app, $architecture, $global, $suggested, $use_cache = $tru
             return
         }
     }
-    Write-Output "Installing '$app' ($version) [$architecture]$(if ($bucket) { " from '$bucket' bucket" } else { " from '$url'" })"
+    Write-Output "Installing '$app' ($version) [$architecture]$(if ($bucket) { " from '$bucket' bucket" } elseif ($url -like (usermanifestsdir) + '\*') { ' from generated manifest' } else { " from '$url'" })"
 
     $dir = ensure (versiondir $app $version $global)
     $original_dir = $dir # keep reference to real (not linked) directory
@@ -79,10 +79,6 @@ function install_app($app, $architecture, $global, $suggested, $use_cache = $tru
     success "'$app' ($version) was installed successfully!"
 
     show_notes $manifest $dir $original_dir $persist_dir
-}
-
-function is_in_dir($dir, $check) {
-    $check -match "^$([regex]::Escape("$dir"))([/\\]|$)"
 }
 
 function Invoke-Installer {
@@ -525,8 +521,8 @@ function unlink_persist_data($manifest, $dir) {
 function persist_permission($manifest, $global) {
     if ($global -and $manifest.persist -and (is_admin)) {
         $path = persistdir $null $global
-        $user = New-Object System.Security.Principal.SecurityIdentifier 'S-1-5-32-545'
-        $target_rule = New-Object System.Security.AccessControl.FileSystemAccessRule($user, 'Write', 'ObjectInherit', 'none', 'Allow')
+        $builtinUsersSid = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinUsersSid, $null)
+        $target_rule = New-Object System.Security.AccessControl.FileSystemAccessRule($builtinUsersSid, 'Write', 'ObjectInherit', 'none', 'Allow')
         $acl = Get-Acl -Path $path
         $acl.SetAccessRule($target_rule)
         $acl | Set-Acl -Path $path
