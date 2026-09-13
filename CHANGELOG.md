@@ -43,6 +43,7 @@
 - **core:** Give `dark` higher priority when use `Extract-DarkArchive` ([#6637](https://github.com/ScoopInstaller/Scoop/issues/6637))
 - **checkver:** Harden github checkver ([#6641](https://github.com/ScoopInstaller/Scoop/issues/6641))
 - **scoop-search:** Select latest search result semantically ([#6643](https://github.com/ScoopInstaller/Scoop/issues/6643))
+- **shim:** Rewrite system paths to avoid WoW64 redirection ([#6620](https://github.com/ScoopInstaller/Scoop/issues/6620))
 
 ### Code Refactoring
 
